@@ -1,3 +1,14 @@
+// example implementation of an Array data structure
+// delete is O(n), push, pop and get are constant
+
+// advantages over linked lists:
+// constant time random access
+// disadvantages
+// statically sized memory-wise
+
+// random access operations (get by index) are constant time
+// however operations like insert/delete from the middle of the array require O(n) time
+// due to the need to shift all the elements after the one you touched
 export class ArrayList<T = unknown> {
   length: number;
   data: Record<number, T>;

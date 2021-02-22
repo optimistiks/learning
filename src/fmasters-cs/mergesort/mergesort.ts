@@ -1,10 +1,16 @@
+// A divide-and-conquer algorithm
+// splits the array in two halves and calls itself on each of the half and then merges the result
+// to split the array we use the middle element
 // worst O(nlogn), average and best are the same,
 // since it always splits the array in half, and stitching takes linear time
 // requires O(n) additional space for temporary arrays
+// stable
 export function mergeSort(nums: number[], l = 0, r = nums.length - 1): void {
   if (r <= l) {
     return;
   }
+  // determine middle index taking into account left and right index
+  // so if the whole array is 0..9, but we are called on a 5..9 subarray, it will give us 7
   const m = Math.floor((r - l) / 2 + l);
   mergeSort(nums, l, m);
   mergeSort(nums, m + 1, r);

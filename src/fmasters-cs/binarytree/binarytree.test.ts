@@ -5,7 +5,7 @@ describe("Binary Search Tree", function () {
     const nums = [3, 7, 4, 6, 5, 1, 10, 2, 9, 8];
     const tree = new Tree<number>();
     nums.map((num) => tree.add(num));
-    const objs = tree;
+    const objs = tree.root!;
 
     expect(objs.value).toEqual(3);
 
@@ -35,5 +35,9 @@ describe("Binary Search Tree", function () {
     expect(objs.right?.right?.left?.left?.value).toEqual(8);
     expect(objs.right?.right?.left?.left?.right).toBeNull();
     expect(objs.right?.right?.left?.left?.left).toBeNull();
+
+    tree.delete(7);
+
+    expect(objs.right?.value).toEqual(8);
   });
 });

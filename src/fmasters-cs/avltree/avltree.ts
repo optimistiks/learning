@@ -1,147 +1,257 @@
-// avl tree is one of the self-balanced types of trees
-// it solves the problem with binary search trees when one side can grow too big
-// in avl tree worst and average time complexity of operations is O(n logn)
-// each tree has a weight determined by the children's weight
-// tree with only value and without any children has weight === 1
-// on every add, it checks if tree became unbalanced
-// meaning the difference between left child weight and right child weight is greater than 1
-// if that's the case, the tree rebalances itself by rotating left or right (depending on which branch is heavier)
-// rotation basically makes the heavy child the new subtree root and swaps the children accordingly to maintain the bst validity
-export class Tree<T> {
-  value: T | null;
-  left: Tree<T> | null;
-  right: Tree<T> | null;
-  weight: number;
+/*
 
-  constructor(value?: T) {
-    this.value = value || null;
-    this.left = null;
-    this.right = null;
-    this.weight = value ? 1 : 0;
+AVL tree is a self balancing binary search tree.
+Every correct AVL tree is a correct binary search tree, but not vice versa.
+It solves the main issue of binary search trees, when tree goes out of balance giving you O(n) time.
+It solves it by rebalancing itself on every change (addition/deletion).
+So it has average and worst time complexity of O(nlogn).
+It guarantees that no branch of the tree will be more than 1 node higher than the other branch of the tree,
+while maintaining the validity of the binary search tree.
+
+A height of the node is the maximum number of steps needed to reach a leaf node on either side.
+A node is unbalanced if it's left height is greater than the right height by more than 1 (or vice versa).
+A node can rebalance itself by performing a series of steps called rotation (right rotation and left rotation).
+
+*/
+
+export class Tree<T> {
+  root: Node<T> | null;
+  constructor() {
+    this.root = null;
   }
 
   add(value: T): void {
-    if (this.value === null) {
-      this.value = value;
-      this.weight = 1;
+    if (this.root === null) {
+      this.root = new Node(value);
       return;
     }
+    this.root.add(new Node(value));
+  }
 
-    if (value < this.value) {
+  delete(value: T): void {
+    if (this.root === null) {
+      return;
+    }
+    this.root = this.root.delete(value);
+  }
+
+  toObject(): Node<T> | null {
+    return this.root;
+  }
+}
+
+class Node<T> {
+  value: T;
+  left: Node<T> | null;
+  right: Node<T> | null;
+  height: number;
+
+  constructor(value: T) {
+    this.value = value;
+    this.left = null;
+    this.right = null;
+    this.height = 0;
+  }
+
+  // get height of the left child
+  // if there is no left child it's 0
+  // otherwise it's left.height + 1 (for the left node itself)
+  getLeftHeight(): number {
+    if (this.left === null) {
+      return 0;
+    }
+    return this.left.height + 1;
+  }
+
+  // same as left, but for the right
+  getRightHeight(): number {
+    if (this.right === null) {
+      return 0;
+    }
+    return this.right.height + 1;
+  }
+
+  // update heights of left and right child and for itself
+  // needed after adding/deleting/rebalancing
+  updateHeight(): void {
+    if (this.left) this.left.updateHeight();
+    if (this.right) this.right.updateHeight();
+    this.height = Math.max(this.getLeftHeight(), this.getRightHeight());
+  }
+
+  // recursively add a node, rebalancing on the way up
+  add(node: Node<T>): void {
+    if (node.value < this.value) {
       if (this.left) {
-        this.left.add(value);
+        this.left.add(node);
       } else {
-        this.left = new Tree(value);
+        this.left = node;
       }
     } else {
       if (this.right) {
-        this.right.add(value);
+        this.right.add(node);
       } else {
-        this.right = new Tree(value);
+        this.right = node;
       }
     }
 
-    this.updateWeight();
+    this.updateHeight();
+    this.rebalance();
+  }
 
-    const leftWeight = this.left ? this.left.weight : 0;
-    const rightWeight = this.right ? this.right.weight : 0;
+  // recursively delete a node, rebalancing on the way up
+  delete(value: T): Node<T> | null {
+    if (this.value === value) {
+      return this._delete();
+    }
 
-    if (leftWeight - rightWeight > 1) {
-      // this tree is out of balance, left branch is heavier, need to rotate left
-      if (this.left && this.left.right && this.left.right.value !== null) {
-        // special case - the left child is right heavy, first need to rotate right the child
+    if (value < this.value && this.left) {
+      this.left = this.left.delete(value);
+    } else if (this.right) {
+      this.right = this.right.delete(value);
+    }
+
+    this.updateHeight();
+    this.rebalance();
+
+    return this;
+  }
+
+  rebalance(): void {
+    // so, if node is out of balance
+    // either the left child is taller, or the right
+    // when right child is taller, you perform the right rotation
+    // when left child is taller, you perform the left rotation
+
+    // but,
+
+    // before you perform the rotation, you need to check the children of the taller child
+
+    // for example, node A is out of balance, right child (node B) is taller,
+    // BUT the left child of the node B is heavier than the right child of the node B,
+    // you first need to perform the left rotation on the node B, and after that, your right rotation of the unbalanced node A
+
+    // opposite example, node C is out of balance, left child (node D) is taller,
+    // BUT the right child of the node D is taller than the left child of the node D,
+    // you first need to perform the right rotation on the node D, and after that, your left rotation of the unbalanced node C
+
+    // In short, you perform a double rotation when the opposite child is heavy during a rotation.
+
+    if (this.getLeftHeight() - this.getRightHeight() > 1 && this.left) {
+      if (this.left.getRightHeight() > this.left.getLeftHeight()) {
         this.left.rotateRight();
       }
       this.rotateLeft();
-    } else if (rightWeight - leftWeight > 1) {
-      // this tree is out of balance, right branch is heavier, need to rotate right
-      if (this.right && this.right.left && this.right.left.value !== null) {
-        // special case - the left child is right heavy, first need to rotate right the child
-        // special case
-        // a double rotation when the opposite child is heavy during a rotation
-        // so for example, this tree is right heavy
-        // but the right child is left heavy
-        // so we first perform a left rotation on that left heavy child
+    } else if (this.getRightHeight() - this.getLeftHeight() > 1 && this.right) {
+      if (this.right.getLeftHeight() > this.right.getRightHeight()) {
         this.right.rotateLeft();
       }
       this.rotateRight();
     }
+    this.updateHeight();
   }
 
   rotateRight(): void {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const nodeA = this; // 5
-    const nodeB = this.right; // 8
-    const nodeC = this.right ? this.right.right : null; // null
-
-    if (!nodeA || !nodeB) {
+    if (!this.right) {
       return;
     }
 
-    // swap values A and B
-    const temp = nodeA.value;
-    nodeA.value = nodeB.value;
-    nodeB.value = temp;
-    // 8 (right 5 (right null, left 7))
+    // the unbalanced node that we're rotating is node A (this one)
+    // node B is the right child of node A
 
-    // make node B left child of node A
-    const originalLeft = nodeA.left;
-    nodeA.left = nodeB;
-    // 8(left 5(right null, left 7), right the same)
+    // first, swap A.value and B.value
+    const temp = this.value;
+    this.value = this.right.value;
+    this.right.value = temp;
 
-    // make node C right child of node A
-    nodeA.right = nodeC;
+    // save current A.left into a temporary variable
+    // move B to A.left
+    const left = this.left;
+    this.left = this.right;
 
-    //?
-    nodeB.right = nodeB.left;
+    // now both A.left and A.right point to B
+    // move B.right to A.right
+    this.right = this.right.right;
 
-    // move node B's right child to its left child (?)
+    // now A.left points B, and A.right points to former B.right
+    // move B.left to B.right
+    // move previously saved A.left to B.left
+    this.left.right = this.left.left;
+    this.left.left = left;
 
-    // make node A's original left child left child of node B
-    nodeB.left = originalLeft;
-
-    if (nodeC) nodeC.updateWeight();
-    if (nodeB) nodeB.updateWeight();
-    if (nodeA) nodeA.updateWeight();
+    this.updateHeight();
   }
 
-  rotateLeft(): void {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const nodeA = this;
-    const nodeB = this.left;
-    const nodeC = this.left ? this.left.left : null;
-
-    if (!nodeA || !nodeB) {
+  rotateLeft() {
+    if (!this.left) {
       return;
     }
 
-    // swap values A and B
-    const temp = nodeA.value;
-    nodeA.value = nodeB.value;
-    nodeB.value = temp;
+    // swap values this and this.left
+    const temp = this.value;
+    this.value = this.left.value;
+    this.left.value = temp;
 
-    // make node B right child of node A
-    const originalRight = nodeA.right;
-    nodeA.right = nodeB;
+    // save this.right to var
+    // move this.left to this.right
+    const right = this.right;
+    this.right = this.left;
 
-    // make node C left child of node A
-    nodeA.left = nodeC;
+    // move this.left.left to this.left
+    this.left = this.left.left;
 
-    nodeB.left = nodeB.right;
+    // move this.right.right to this.right.left
+    this.right.left = this.right.right;
+    // put saved this.right to this.right.right
+    this.right.right = right;
 
-    // make node A's original right child right child of node B
-    nodeB.right = originalRight;
-
-    if (nodeC) nodeC.updateWeight();
-    if (nodeB) nodeB.updateWeight();
-    if (nodeA) nodeA.updateWeight();
+    this.updateHeight();
   }
 
-  updateWeight(): void {
-    this.weight =
-      Math.max(
-        this.left ? this.left.weight : 0,
-        this.right ? this.right.weight : 0
-      ) + (this.value !== null ? 1 : 0);
+  isLeaf(): boolean {
+    return this.left === null && this.right === null;
+  }
+
+  hasSingleChild(): boolean {
+    return (
+      (this.left === null && this.right !== null) ||
+      (this.left !== null && this.right === null)
+    );
+  }
+
+  getSingleChild(): Node<T> | null {
+    return this.left || this.right;
+  }
+
+  getSuccessor(): Node<T> | null {
+    let successor = this.right;
+    while (successor && successor.left) {
+      successor = successor.left;
+    }
+    return successor;
+  }
+
+  // performs the basic BST deletion logic
+  // if this node is a leaf node, just return null
+  // if node has only one child, set this.value to the child.value, and set left and right to null
+  // if node has both children, find a successor node, set this.value to successor.value, and delete the successor node
+  _delete() {
+    if (this.isLeaf()) {
+      return null;
+    } else if (this.hasSingleChild()) {
+      const singleChild = this.getSingleChild();
+      if (singleChild) {
+        this.value = singleChild.value;
+        this.left = null;
+        this.right = null;
+      }
+    } else {
+      const successor = this.getSuccessor();
+      if (successor && this.right) {
+        this.value = successor.value;
+        this.right = this.right.delete(successor.value);
+      }
+    }
+    return this;
   }
 }

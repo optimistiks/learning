@@ -4,8 +4,10 @@ describe("AVL Tree", function () {
   it("creates a correct tree", () => {
     const nums = [3, 7, 4, 6, 5, 1, 10, 2, 9, 8];
     const tree = new Tree();
+
     nums.map((num) => tree.add(num));
-    const objs = tree;
+
+    const objs = tree.root!;
 
     expect(objs.value).toEqual(4);
 
@@ -37,5 +39,9 @@ describe("AVL Tree", function () {
     expect(objs.right?.right?.right?.value).toEqual(10);
     expect(objs.right?.right?.right?.left).toBeNull();
     expect(objs.right?.right?.right?.right).toBeNull();
+
+    tree.delete(7);
+
+    expect(objs.right?.value).toEqual(8);
   });
 });

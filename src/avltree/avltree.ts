@@ -4,7 +4,7 @@ AVL tree is a self balancing binary search tree.
 Every correct AVL tree is a correct binary search tree, but not vice versa.
 It solves the main issue of binary search trees, when tree goes out of balance giving you O(n) time.
 It solves it by rebalancing itself on every change (addition/deletion).
-So it has average and worst time complexity of O(nlogn).
+So it has average and worst time complexity of O(logn).
 It guarantees that no branch of the tree will be more than 1 node higher than the other branch of the tree,
 while maintaining the validity of the binary search tree.
 

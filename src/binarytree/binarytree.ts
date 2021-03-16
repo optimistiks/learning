@@ -4,7 +4,7 @@ Binary Search Tree
 
 A tree-like data structure where all values less than the node.value go to the left of the node,
 and values greater than the nodevalue go to the right of the node
-Average operation complexity is O(nlogn)
+Average operation complexity is O(logn)
 However worst case is O(n), since the tree can go out of balance
 For example, after adding a sorted array into the tree, all of them will go to one side,
 resulting in an unbalanced tree where left side has zero nodes and right side has all the nodes.

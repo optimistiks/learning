@@ -54,4 +54,19 @@ describe("LinkedList", function () {
     expect(list.length).toEqual(24);
     expect(list.get(0)).toEqual("b");
   });
+
+  it("reverses", () => {
+    ["a", "b", "c", "d", "e"].forEach((item) => list.push(item));
+    expect(list.get(0)).toEqual("a");
+    expect(list.get(1)).toEqual("b");
+    expect(list.get(2)).toEqual("c");
+    expect(list.get(3)).toEqual("d");
+    expect(list.get(4)).toEqual("e");
+    list.reverse();
+    expect(list.get(0)).toEqual("e");
+    expect(list.get(1)).toEqual("d");
+    expect(list.get(2)).toEqual("c");
+    expect(list.get(3)).toEqual("b");
+    expect(list.get(4)).toEqual("a");
+  });
 });

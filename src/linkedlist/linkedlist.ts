@@ -8,6 +8,7 @@
 // generally speaking, insertion or deletion is constant time in linked list,
 // that is if you have access to the node you want to delete or insert before/after
 // if you don't have the node, O(n) work is required to find that node
+
 class Node<T> {
   value: T;
   next: Node<T> | null;
@@ -44,7 +45,7 @@ export class LinkedList<T> {
     return this.delete(this.length - 1);
   }
 
-  private getNodeByIndex(index: number): Node<T> | null {
+  getNodeByIndex(index: number): Node<T> | null {
     if (index < 0 || index > this.length - 1) {
       return null;
     }
@@ -76,38 +77,12 @@ export class LinkedList<T> {
   delete(index: number): T | null {
     let value: T | null = null;
 
-    if (index === 0 && this.head) {
-      // deletion at the beginning
-      value = this.head.value;
-      this.head = this.head.next;
-    }
-
-    if (index === this.length - 1 && this.tail) {
-      // deletion at the end
-      const newTail = this.getNodeByIndex(index - 1);
-      value = this.tail.value;
-      if (newTail) {
-        newTail.next = null;
-      }
-      this.tail = newTail;
-    }
-
-    if (value === null) {
-      // deletion in the middle
-      const node = this.getNodeByIndex(index);
-      if (!node) {
-        return null;
-      }
-      if (!node.next) {
-        // only tail has next === null, but we've already handled tail deletion
-        throw new Error("linked list is invalid");
-      }
+    const node = this.getNodeByIndex(index);
+    if (node) {
       value = node.value;
-      node.value = node.next.value;
-      node.next = node.next.next;
+      this.deleteNode(node);
     }
 
-    this.length -= 1;
     return value;
   }
 
@@ -130,6 +105,43 @@ export class LinkedList<T> {
     while (current) {
       console.log(current.value);
       current = current.next;
+    }
+  }
+
+  deleteNode(node: Node<T>): void {
+    if (this.head === node) {
+      this.head = node.next;
+    }
+
+    if (node.next) {
+      node.value = node.next.value;
+      node.next = node.next.next;
+    } else if (this.tail === node) {
+      let current = this.head;
+      while (current && current.next !== node) {
+        current = current.next;
+      }
+      if (current) {
+        current.next = null;
+        this.tail = current;
+      }
+    }
+
+    this.length -= 1;
+  }
+
+  removeDuplicates(): void {
+    const storage = new Set<T>();
+    let current = this.head;
+    while (current) {
+      if (storage.has(current.value)) {
+        this.deleteNode(current);
+        // deleting a node "shifts" the next node to the current one (changes value)
+        // so we don't change current in this case
+      } else {
+        storage.add(current.value);
+        current = current.next;
+      }
     }
   }
 }

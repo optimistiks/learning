@@ -69,4 +69,17 @@ describe("LinkedList", function () {
     expect(list.get(3)).toEqual("b");
     expect(list.get(4)).toEqual("a");
   });
+
+  it("removes duplicates", () => {
+    ["a", "a", "b", "b", "b", "e", "c", "c", "d", "d", "v"].forEach((item) =>
+      list.push(item)
+    );
+    list.removeDuplicates();
+    expect(list.get(0)).toEqual("a");
+    expect(list.get(1)).toEqual("b");
+    expect(list.get(2)).toEqual("e");
+    expect(list.get(3)).toEqual("c");
+    expect(list.get(4)).toEqual("d");
+    expect(list.get(5)).toEqual("v");
+  });
 });

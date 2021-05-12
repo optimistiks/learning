@@ -8,4 +8,8 @@ export class Stack<T> {
   pop(): T | undefined {
     return this.storage.pop();
   }
+
+  length(): number {
+    return this.storage.length;
+  }
 }
